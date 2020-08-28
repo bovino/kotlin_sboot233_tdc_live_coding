@@ -30,15 +30,6 @@ class UserServiceImpl : UserService {
         return userElasticRepository.findByFirstNameContainingOrLastNameContainingOrProfileContaining(firstName, lastName, profile)
     }
 
-    override fun findSimilar(firstName: String, lastName: String, profile: String): List<User> {
-        val userToSearch = User()
-        userToSearch.id = ""
-        userToSearch.firstName = firstName
-        userToSearch.lastName = lastName
-        userToSearch.profile = profile
-        return userElasticRepository.searchSimilar(userToSearch, arrayOf("id", "firstName", "lastName", "profile"), PageRequest.of(1, 20)).toList()
-    }
-
     override fun save(user: User): User {
 
         if(user.id.equals("") ){

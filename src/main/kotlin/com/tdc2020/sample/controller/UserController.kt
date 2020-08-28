@@ -17,11 +17,6 @@ class UserController {
         return userService.findByFirstNameAndLastNameAndProfile(firstName, lastName, profile)
     }
 
-    @GetMapping("search-term")
-    fun findSimilar(@RequestParam firstName: String, @RequestParam lastName: String,@RequestParam profile: String): List<User> {
-        return userService.findSimilar(firstName, lastName,profile)
-    }
-
     @PutMapping
     fun addUser(@RequestBody user: User): User {
         return userService.save(user)
