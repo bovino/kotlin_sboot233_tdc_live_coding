@@ -1,0 +1,87 @@
+
+version: '3.8'
+services:
+  mongo0:
+    hostname: mongo0
+    networks:
+      - backend
+    container_name: mongo0
+    image: mongo
+    ports:
+      - 27017:27017
+    restart: on-failure
+  mongo-express:
+    image: mongo-express
+    restart: always
+    depends_on:
+      - mongo0
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo0
+    networks:
+      - backend
+  elasticsearch:
+    hostname: elasticsearch
+    networks:
+      - backend
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+      - 9300:9300
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9200']
+      interval: 20s
+      timeout: 5s
+      retries: 10
+  kibana:
+    hostname: kibana
+    networks:
+      - backend
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.6.2
+    ports:
+      - 5601:5601
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5601']
+      interval: 20s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - elasticsearch
+
+
+
+  maildev:
+    image: maildev/maildev
+    ports:
+      - 1080:80
+      - 25:25
+    networks:
+      - backend
+
+  demo-service:
+    image: sample-container
+    networks:
+      - backend
+    build: .
+    restart: on-failure
+    ports:
+      - 8080:8080
+    environment:
+      - SPRING_ELASTICSEARCH_REST_URIS=http://elasticsearch:9200
+      - SPRING_DATA_ELASTICSEARCH_CLUSTER_NAME=docker-cluster
+      - SPRING_DATA_ELASTICSEARCH_CLUSTER_NODES=elasticsearch:9300
+      - SPRING_DATA_MONGODB_DATABASE=tdc2020
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo0:27017
+    depends_on:
+      - mongo0
+      - elasticsearch
+
+      - kibana
+      - maildev
+networks:
+  backend:
